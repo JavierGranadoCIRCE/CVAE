@@ -1,6 +1,8 @@
 # Define Hyperparameters and Constants
 hyperparams = {
     'battery': 'NMC2.1', # NMC2.1，NMC21，LMO，LFP, LMO_25, LMO_26
+    'weight': 0.043, #  NMC2.1:0.043, LFP:0.0295, LMO:0.095, NMC21:0.04, LMO25:0.045, LMO26:0.04
+    
     'file_path': 'battery_data/NMC_2.1Ah_W_3000.xlsx',
     'sampling_multiplier': 1,
     'feature_dim': 21,  # Dimension of the main input features
@@ -13,8 +15,8 @@ hyperparams = {
     'num_heads': 1,
     'train_SOC_values': [0.05, 0.15, 0.25, 0.35, 0.45, 0.50],  # SOC values to use for training
     'all_SOC_values': [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50],  # All SOC values in the dataset
-    'mode': 3,  # when case > 3, interpolation ends; set mode to 99 for only interpolation, to -1 for only extrapolation
-    'weight': 0.1 # 
+    'mode': 3  # when case > 3, interpolation ends; set mode to 99 for only interpolation, to -1 for only extrapolation
+    
 }
 
 train_SOC_values_cases = [
