@@ -1,6 +1,6 @@
 # Define Hyperparameters and Constants
 hyperparams = {
-    'battery': 'NMC2.1', # NMC2.1，NMC21，LMO，LFP
+    'battery': 'NMC2.1', # NMC2.1，NMC21，LMO，LFP, LMO_25, LMO_26
     'file_path': 'battery_data/NMC_2.1Ah_W_3000.xlsx',
     'sampling_multiplier': 1,
     'feature_dim': 21,  # Dimension of the main input features
