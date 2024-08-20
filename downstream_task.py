@@ -3,6 +3,7 @@ from sklearn.ensemble import RandomForestRegressor
 import matplotlib.colors as mcolors
 from Conditional_VAE import generate_data, conditional_vae
 from utils import *
+from configuration import hyperparams, train_SOC_values_cases
 
 def run_SOH_experiment(masked_generated_Fts_dir, masked_generated_SOH_dir, case_index , hyperparams,train_SOC_values, test_SOC_index, data, generated_data, masked_generated_Fts, test_condition):
     # train_SOC_values is a list of SOC levels used for training
@@ -100,14 +101,8 @@ def preprocess(case_index, hyperparams, test_condition, test_Fts, train_SOC_valu
         # print(n,m)
         k = 0
         # physic_weight is the mean difference between the corresponding U of two adjacent SOC
-        if (hyperparams['battery'] == "NMC2.1"):
-            physic_weight = 0.043
-        if (hyperparams['battery'] == "LFP"):
-            physic_weight = 0.0295
-        if (hyperparams['battery'] == "LMO"):
-            physic_weight = 0.095
-        if (hyperparams['battery'] == "NMC21"):
-            physic_weight = 0.04
+        physic_weight = hyperparams['weight']
+
 
         while (k < len(masked_generated_Fts)):
             l = 0
