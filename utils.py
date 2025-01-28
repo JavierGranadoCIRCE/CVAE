@@ -30,7 +30,8 @@ def load_data(hyperparams):
     if (hyperparams['battery'] == "NMC21"):
         data = pd.read_excel('battery_data/NMC_21Ah_W_3000.xlsx', sheet_name="SOC ALL")
     else:
-        data = pd.read_excel('battery_data/'+ hyperparams['battery'] +'Ah_W_5000.xlsx', sheet_name="SOC ALL")
+        # data = pd.read_excel('battery_data/'+ hyperparams['battery'] +'Ah_W_5000.xlsx', sheet_name="SOC ALL") prueba para forzar a cargar el fichero correcto...revisar porque pasa
+        data = pd.read_excel('battery_data/NMC_2.1Ah_W_3000.xlsx', sheet_name="Sheet1")
 
 
     data['SOC'] /= 100  # Normalize SOC by dividing by 100

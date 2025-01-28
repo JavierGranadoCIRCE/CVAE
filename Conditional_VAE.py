@@ -7,7 +7,10 @@ from tensorflow.keras.losses import mse
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import MultiHeadAttention, Embedding, Flatten
 from sklearn.preprocessing import MinMaxScaler
-
+from keras import layers
+from keras.layers import Lambda
+import keras.backend as K
+import tensorflow.keras.backend as K
 
 def sampling(args):
     z_mean, z_log_var = args
@@ -20,13 +23,16 @@ def conditional_vae(feature_dim, condition_dim, embedding_dim, intermediate_dim,
     # Embedding layer for conditional input (SOC + SOH)
     condition_input = Input(shape=(condition_dim,))
     condition_embedding = Dense(embedding_dim, activation='relu')(condition_input)
-    condition_embedding_expanded = tf.expand_dims(condition_embedding, 2)
+    #condition_embedding_expanded = tf.expand_dims(condition_embedding, 2)--->>>>>>>>>>>>da error por incompatiilidad Keras/Tensorflow
+    condition_embedding_expanded = layers.Lambda(lambda x: tf.expand_dims(x, axis=2))(condition_embedding)
 
     # Main input (21-dimensional features)
     x = Input(shape=(feature_dim,))
     # VAE Encoder
     h = Dense(intermediate_dim, activation='relu')(x)
-    h_expanded = tf.expand_dims(h, 2)
+    #h_expanded = tf.expand_dims(h, 2)--->>>>>>>>>>>>da error por incompatiilidad Keras/Tensorflow
+    h_expanded = layers.Lambda(lambda x: tf.expand_dims(x, axis=2))(h)
+
 
     # Cross-attention in Encoder
     attention_to_encode = MultiHeadAttention(num_heads, key_dim=embedding_dim)(
@@ -34,7 +40,8 @@ def conditional_vae(feature_dim, condition_dim, embedding_dim, intermediate_dim,
         key=condition_embedding_expanded,
         value=condition_embedding_expanded
     )
-    attention_output_squeezed = tf.squeeze(attention_to_encode, 2)
+    #attention_output_squeezed = tf.squeeze(attention_to_encode, 2) --->>>>>>>>>>>>da error por incompatiilidad Keras/Tensorflow
+    attention_output_squeezed = layers.Lambda(lambda x: tf.squeeze(x, axis=2))(attention_to_encode)
 
     z_mean = Dense(latent_dim)(attention_output_squeezed)
     z_log_var = Dense(latent_dim)(attention_output_squeezed)
@@ -46,7 +53,8 @@ def conditional_vae(feature_dim, condition_dim, embedding_dim, intermediate_dim,
     decoder_h = Dense(intermediate_dim, activation='relu')
     decoder_mean = Dense(feature_dim, activation='sigmoid')
     h_decoded = decoder_h(z_input)
-    h_decoded_expanded = tf.expand_dims(h_decoded, 2)
+    # h_decoded_expanded = tf.expand_dims(h_decoded, 2) --->>>>>>>>>>>>da error por incompatiilidad Keras/Tensorflow
+    h_decoded_expanded = layers.Lambda(lambda x: tf.expand_dims(x, axis=2))(h_decoded)
 
     # Cross-attention in Decoder
     attention_to_decoded = MultiHeadAttention(num_heads, key_dim=embedding_dim)(
@@ -54,7 +62,8 @@ def conditional_vae(feature_dim, condition_dim, embedding_dim, intermediate_dim,
         key=condition_embedding_expanded,
         value=condition_embedding_expanded
     )
-    attention_output_decoded_squeezed = tf.squeeze(attention_to_decoded, 2)
+    # attention_output_decoded_squeezed = tf.squeeze(attention_to_decoded, 2) >>>>>>>>>>>da error por incompatiilidad Keras/Tensorflow
+    attention_output_decoded_squeezed = layers.Lambda(lambda x: tf.squeeze(x, axis=2))(attention_to_decoded)
     _x_decoded_mean = decoder_mean(attention_output_decoded_squeezed)
     decoder = Model(inputs=[z_input, condition_input], outputs=_x_decoded_mean)
 
@@ -65,10 +74,18 @@ def conditional_vae(feature_dim, condition_dim, embedding_dim, intermediate_dim,
 
     # VAE Loss
     xent_loss = feature_dim * mse(x, vae_output)
-    kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
+    #kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)>>>>>>>>>>>da error por incompatiilidad Keras/Tensorflow
+    kl_loss = Lambda(
+        lambda x: -0.5 * K.sum(1 + x[1] - K.square(x[0]) - K.exp(x[1]), axis=-1),
+        output_shape=(None,)
+    )([z_mean, z_log_var])
     w_xent = 0.5
     w_kl = 0.5
-    vae_loss = K.mean(w_xent * xent_loss + w_kl * kl_loss)
+    #vae_loss = K.mean(w_xent * xent_loss + w_kl * kl_loss)
+    w_xent = tf.convert_to_tensor(w_xent)
+    xent_loss = tf.convert_to_tensor(xent_loss)
+    kl_loss = tf.convert_to_tensor(kl_loss)
+    vae_loss = tf.reduce_mean(w_xent * xent_loss + w_kl * kl_loss)
     vae.add_loss(vae_loss)
     vae.add_metric(xent_loss, name='xent_loss', aggregation='mean')
     vae.add_metric(kl_loss, name='kl_loss', aggregation='mean')
